@@ -1,0 +1,31 @@
+2026-10-23 17:23:37,231 INFO    ServiceGuard started (interval=3.0s, threshold=2, recover=True)
+2026-10-23 17:23:37,266 WARNING Status: DOWN (1/2) | health: connection refused or unreachable; home: connection refused or unreachable
+2026-10-23 17:23:40,209 WARNING Status: DOWN (2/2) | health: connection refused or unreachable; home: connection refused or unreachable
+2026-10-23 17:23:40,210 ERROR   INCIDENT OPENED INC-20261023-172340 | health: connection refused or unreachable; home: connection refused or unreachable
+2026-10-23 17:23:40,211 WARNING Recovery attempt 1/2 for 'nginx'
+2026-10-23 17:23:40,474 INFO    Recovery commands FAILED; re-checking in 3s
+2026-10-23 17:23:43,482 WARNING Status: DOWN (3/2) | health: connection refused or unreachable; home: connection refused or unreachable
+2026-10-23 17:23:43,482 WARNING Recovery attempt 2/2 for 'nginx'
+2026-10-23 17:23:43,590 INFO    Recovery commands FAILED; re-checking in 3s
+2026-10-23 17:23:46,595 WARNING Status: DOWN (4/2) | health: connection refused or unreachable; home: connection refused or unreachable
+2026-10-23 17:23:46,595 ERROR   Recovery attempts exhausted for INC-20261023-172340 - manual intervention required
+2026-10-23 17:23:49,600 WARNING Status: DOWN (5/2) | health: connection refused or unreachable; home: connection refused or unreachable
+2026-10-23 17:23:52,606 WARNING Status: DOWN (6/2) | health: connection refused or unreachable; home: connection refused or unreachable
+2026-10-23 17:23:55,611 WARNING Status: DOWN (7/2) | health: connection refused or unreachable; home: connection refused or unreachable
+2026-10-23 17:23:58,616 WARNING Status: DOWN (8/2) | health: connection refused or unreachable; home: connection refused or unreachable
+2026-10-23 17:24:01,620 WARNING Status: DOWN (9/2) | health: connection refused or unreachable; home: connection refused or unreachable
+2026-10-23 17:24:04,628 WARNING Status: DOWN (10/2) | health: connection refused or unreachable; home: connection refused or unreachable
+2026-10-23 17:24:07,547 WARNING Status: DOWN (11/2) | health: connection refused or unreachable; home: connection refused or unreachable
+2026-10-23 17:24:10,572 WARNING Status: DOWN (12/2) | health: connection refused or unreachable; home: connection refused or unreachable
+2026-10-23 17:24:13,577 WARNING Status: DOWN (13/2) | health: connection refused or unreachable; home: connection refused or unreachable
+2026-10-23 17:24:16,583 WARNING Status: DOWN (14/2) | health: connection refused or unreachable; home: connection refused or unreachable
+2026-10-23 17:24:19,591 WARNING Status: DOWN (15/2) | health: connection refused or unreachable; home: connection refused or unreachable
+2026-10-23 17:24:22,612 INFO    Status: OK | health 200 11.1ms | home 200 7.6ms
+2026-10-23 17:24:22,612 INFO    INCIDENT RESOLVED INC-20261023-172340 | downtime ~45.5s | recovery attempts: 2
+2026-10-23 17:24:25,624 INFO    Status: OK | health 200 5.2ms | home 200 4.4ms
+2026-10-23 17:24:28,635 INFO    Status: OK | health 200 4.2ms | home 200 4.7ms
+2026-10-23 17:24:31,644 INFO    Status: OK | health 200 4.0ms | home 200 3.2ms
+2026-10-23 17:24:34,651 INFO    Status: OK | health 200 3.2ms | home 200 3.0ms
+2026-10-23 17:24:37,628 INFO    Status: OK | health 200 6.3ms | home 200 3.9ms
+2026-10-23 17:24:40,644 INFO    Status: OK | health 200 10.3ms | home 200 4.4ms
+2026-10-23 17:24:42,072 INFO    ServiceGuard stopped by user

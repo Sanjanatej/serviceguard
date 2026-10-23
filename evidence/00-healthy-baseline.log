@@ -1,0 +1,6 @@
+2026-10-23 17:17:12,923 INFO    Status: OK | health 200 24.4ms | home 200 13.6ms
+2026-10-23 17:17:13,413 INFO    ServiceGuard started (interval=3.0s, threshold=2, recover=False)
+2026-10-23 17:17:13,437 INFO    Status: OK | health 200 10.8ms | home 200 11.6ms
+2026-10-23 17:17:16,485 INFO    Status: OK | health 200 10.1ms | home 200 34.4ms
+2026-10-23 17:17:19,500 INFO    Status: OK | health 200 8.2ms | home 200 4.1ms
+2026-10-23 17:17:22,509 INFO    Status: OK | health 200 3.3ms | home 200 3.6ms
