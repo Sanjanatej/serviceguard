@@ -1,0 +1,38 @@
+2026-10-24 05:28:48,028 INFO    ServiceGuard v2 started (targets=3, interval=3s, threshold=2, recover=True)
+2026-10-24 05:28:48,062 INFO    Cycle | frontend OK 20.9ms | backend-a OK 8.0ms | backend-b OK 4.1ms
+2026-10-24 05:28:51,105 INFO    Cycle | frontend OK 30.6ms | backend-a OK 3.7ms | backend-b OK 7.7ms
+2026-10-24 05:28:54,119 INFO    Cycle | frontend OK 5.2ms | backend-a OK 3.7ms | backend-b OK 3.9ms
+2026-10-24 05:28:57,154 INFO    Cycle | frontend OK 12.6ms | backend-a OK 6.6ms | backend-b OK 14.3ms
+2026-10-24 05:29:00,166 INFO    Cycle | frontend OK 4.3ms | backend-a OK 2.7ms | backend-b OK 3.4ms
+2026-10-24 05:29:03,182 INFO    Cycle | frontend OK 4.5ms | backend-a OK 5.7ms | backend-b OK 4.9ms
+2026-10-24 05:29:06,199 INFO    Cycle | frontend OK 5.8ms | backend-a OK 4.5ms | backend-b OK 4.4ms
+2026-10-24 05:29:09,232 INFO    Cycle | frontend OK 12.1ms | backend-a OK 8.9ms | backend-b OK 10.7ms
+2026-10-24 05:29:12,252 INFO    Cycle | frontend OK 8.8ms | backend-a OK 4.7ms | backend-b OK 3.7ms
+2026-10-24 05:29:15,267 INFO    Cycle | frontend OK 6.1ms | backend-a OK 2.9ms | backend-b OK 4.1ms
+2026-10-24 05:29:18,225 INFO    Cycle | frontend OK 5.3ms | backend-a OK 3.7ms | backend-b OK 6.0ms
+2026-10-24 05:29:21,239 INFO    Cycle | frontend OK 4.1ms | backend-a OK 3.9ms | backend-b OK 4.2ms
+2026-10-24 05:29:24,253 INFO    Cycle | frontend OK 5.4ms | backend-a OK 3.9ms | backend-b OK 4.3ms
+2026-10-24 05:29:27,276 INFO    Cycle | frontend OK 13.0ms | backend-a OK 4.3ms | backend-b OK 4.1ms
+2026-10-24 05:29:30,290 INFO    Cycle | frontend OK 4.2ms | backend-a OK 3.1ms | backend-b OK 3.5ms
+2026-10-24 05:29:33,305 INFO    Cycle | frontend OK 5.2ms | backend-a OK 3.1ms | backend-b OK 3.8ms
+2026-10-24 05:29:36,320 INFO    Cycle | frontend OK 4.4ms | backend-a OK 3.6ms | backend-b OK 3.0ms
+2026-10-24 05:29:39,344 INFO    Cycle | frontend OK 12.2ms | backend-a OK 5.0ms | backend-b OK 3.3ms
+2026-10-24 05:29:42,362 INFO    Cycle | frontend OK 5.7ms | backend-a OK 6.1ms | backend-b OK 3.4ms
+2026-10-24 05:29:45,378 INFO    Cycle | frontend OK 6.1ms | backend-a OK 3.8ms | backend-b OK 3.4ms
+2026-10-24 05:29:48,330 WARNING [backend-b] DOWN (1/2) | connection refused or unreachable
+2026-10-24 05:29:48,330 INFO    Cycle | frontend OK 4.9ms | backend-a OK 4.2ms | backend-b DOWN
+2026-10-24 05:29:51,342 WARNING [backend-b] DOWN (2/2) | connection refused or unreachable
+2026-10-24 05:29:51,343 ERROR   [backend-b] INCIDENT OPENED INC-20261024-052951-backend-b | connection refused or unreachable
+2026-10-24 05:29:51,347 WARNING [backend-b] Recovery attempt 1/3 for 'sg-backend-b'
+2026-10-24 05:29:51,480 INFO    [backend-b] Recovery commands succeeded; re-checking next cycle
+2026-10-24 05:29:54,480 INFO    Cycle | frontend OK 6.9ms | backend-a OK 2.8ms | backend-b DOWN
+2026-10-24 05:29:57,503 INFO    [backend-b] INCIDENT RESOLVED INC-20261024-052951-backend-b | downtime ~9.2s | attempts: 1
+2026-10-24 05:29:57,504 INFO    Cycle | frontend OK 12.8ms | backend-a OK 4.7ms | backend-b OK 4.5ms
+2026-10-24 05:30:00,519 INFO    Cycle | frontend OK 5.1ms | backend-a OK 3.7ms | backend-b OK 4.1ms
+2026-10-24 05:30:03,533 INFO    Cycle | frontend OK 4.0ms | backend-a OK 3.4ms | backend-b OK 3.4ms
+2026-10-24 05:30:06,550 INFO    Cycle | frontend OK 6.4ms | backend-a OK 4.5ms | backend-b OK 4.9ms
+2026-10-24 05:30:09,570 INFO    Cycle | frontend OK 6.7ms | backend-a OK 5.6ms | backend-b OK 5.8ms
+2026-10-24 05:30:12,584 INFO    Cycle | frontend OK 5.1ms | backend-a OK 3.5ms | backend-b OK 3.7ms
+2026-10-24 05:30:15,602 INFO    Cycle | frontend OK 5.1ms | backend-a OK 3.9ms | backend-b OK 4.5ms
+2026-10-24 05:30:18,559 INFO    Cycle | frontend OK 4.6ms | backend-a OK 3.3ms | backend-b OK 5.3ms
+2026-10-24 05:30:20,832 INFO    ServiceGuard stopped by user
