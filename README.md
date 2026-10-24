@@ -114,3 +114,15 @@ single runs on one machine.
 - Recovery pauses the monitor loop briefly, because checks run in sequence.
 - Not tested: restart after a full WSL shutdown.
 - The Node Exporter dashboard is a community dashboard (Grafana ID 1860).
+
+## Screenshots
+
+ServiceGuard Status dashboard: `backend-b` goes DOWN briefly while `backend-a`
+and the frontend stay UP, then the incident and the recovery attempt are counted.
+
+![ServiceGuard Status dashboard](screenshots/02-serviceguard-dashboard.png)
+
+Node Exporter dashboard (community dashboard, Grafana ID 1860) showing CPU,
+memory, disk and network for the WSL machine.
+
+![Node Exporter dashboard](screenshots/01-grafana-node-dashboard.png)
