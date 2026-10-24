@@ -21,6 +21,7 @@ HTTP checks, systemd, logging, and incident handling.
    intervention is required.
 
 ## Architecture
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for diagrams.
 
 ```text
 Windows 11 -> WSL 2 (Ubuntu 24.04)
