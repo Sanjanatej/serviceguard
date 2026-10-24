@@ -1,122 +1,116 @@
 # ServiceGuard
 
-A small Python tool that monitors a local web service, detects failures,
-logs incidents, and attempts a controlled recovery. It was built and tested
-on Ubuntu 24.04 under WSL 2 as a hands-on project covering Linux, Python,
-HTTP checks, systemd, logging, and incident handling.
+![CI](https://github.com/Sanjanatej/serviceguard/actions/workflows/ci.yml/badge.svg)
+
+A Python tool that monitors a small load-balanced web stack on Linux, detects
+failures per component, logs incidents, and attempts controlled recovery.
+Built and tested on Ubuntu 24.04 under WSL 2 as a learning project covering
+Linux, Python, HTTP checks, systemd, Nginx, logging, incident handling and
+basic Prometheus/Grafana monitoring.
 
 ## What it does
 
-1. **Checks** two URLs on a local Nginx test site (`/health` and `/`),
-   verifying both the HTTP status code and the page content.
-2. **Detects** failure after a configurable number of consecutive failed
-   checks (default 2), to avoid reacting to a single blip.
-3. **Logs** every incident as a structured JSON event (`logs/incidents.jsonl`)
-   and as human-readable lines (`logs/serviceguard.log`).
-4. **Recovers** (optional, `--recover`): runs `nginx -t` first, restarts the
-   service only if the config is valid, and confirms with `systemctl is-active`.
-5. **Verifies** recovery by re-checking over HTTP. A successful restart command
-   is not treated as a successful recovery.
-6. **Escalates** after a maximum number of attempts and logs that manual
-   intervention is required.
+1. **Test stack:** Nginx load balancer (port 8080) in front of two Python
+   backends (9001, 9002). All three run as systemd services.
+2. **Checks** the frontend and each backend separately (status code and page
+   content), driven by `config.json`.
+3. **Detects** failure after N consecutive failed checks and opens an incident
+   that names the failed target.
+4. **Logs** incidents as JSON (`logs/incidents.jsonl`) and readable text.
+5. **Recovers** (`--recover`): restarts only the failed service. Nginx gets
+   `nginx -t` first. Services must be on an allow-list. Recovery is confirmed
+   by the next HTTP check, and attempts are capped before escalating.
+6. **Runs as a systemd service** (`Restart=on-failure`).
+7. **Exposes metrics** on `127.0.0.1:9101/metrics`. Prometheus scrapes it, and
+   Grafana shows backend status, incident counts and latency.
 
 ## Architecture
+
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for diagrams.
 
 ```text
-Windows 11 -> WSL 2 (Ubuntu 24.04)
-                |
-                +-- ServiceGuard (Python)
-                |     checker.py       HTTP status + content checks
-                |     recovery.py      nginx -t -> restart -> is-active
-                |     serviceguard.py  monitor loop, incident tracking, logging
-                |
-                +-- Nginx test site (port 8080, managed by systemd)
-                      /health  -> "OK"
-                      /        -> "ServiceGuard Test Site"
+Windows 11 -> WSL 2 (Ubuntu 24.04, systemd)
+  Nginx :8080 -> backend-a :9001, backend-b :9002
+  ServiceGuard -> checks all three, restarts failed ones, logs, metrics :9101
+  Prometheus :9090 scrapes ServiceGuard and Node Exporter :9100
+  Grafana :3000 reads Prometheus
 ```
 
 ## Project layout
 
 ```text
-src/        checker.py, recovery.py, serviceguard.py
-tests/      unit tests for the checker (pytest)
-scripts/    summarize_incidents.py (builds a table from incidents.jsonl)
-testsite/   test site files, Nginx config, example sudoers rule
-evidence/   raw logs from each failure test + generated summary table
-docs/       TEST_RESULTS.md
-logs/       incidents.jsonl (tracked as evidence); *.log files are ignored
+src/         checker.py, recovery.py, serviceguard.py, metrics.py, backend.py
+config.json  targets, thresholds, intervals
+tests/       pytest tests (8)
+scripts/     summarize_incidents.py
+testsite/    Nginx config, systemd units, example sudoers rule
+monitoring/  prometheus.yml
+evidence/    raw logs from each failure test
+docs/        ARCHITECTURE, TEST_RESULTS, TROUBLESHOOTING
+.github/     CI workflow (runs pytest on every push)
 ```
 
-## Setup (Ubuntu 24.04 / WSL 2 with systemd enabled)
+## Setup (Ubuntu 24.04 / WSL 2 with systemd)
 
 ```bash
 sudo apt update
-sudo apt install -y python3-pip python3-venv nginx curl
-
-git clone https://github.com/Sanjanatej/serviceguard.git serviceguard && cd serviceguard
+sudo apt install -y python3-pip python3-venv nginx curl prometheus prometheus-node-exporter
+git clone https://github.com/Sanjanatej/serviceguard.git && cd serviceguard
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 
-# Test site
-sudo mkdir -p /var/www/testsite
-sudo cp testsite/index.html testsite/health /var/www/testsite/
+# Nginx load balancer
 sudo cp testsite/nginx-testsite.conf /etc/nginx/sites-available/testsite
 sudo ln -sf /etc/nginx/sites-available/testsite /etc/nginx/sites-enabled/testsite
 sudo nginx -t && sudo systemctl reload nginx
-
-# Least-privilege rule for recovery (replace the username first)
-sudo cp testsite/sudoers-serviceguard.example /etc/sudoers.d/serviceguard
-sudo chmod 440 /etc/sudoers.d/serviceguard
-sudo visudo -cf /etc/sudoers.d/serviceguard
 ```
 
-The example sudoers file uses the username from the original machine. Edit it
-to match yours before installing. The rule allows only two commands:
-`systemctl restart nginx` and `nginx -t`.
+Edit `User=` and the paths in `testsite/systemd/*.service` and the username in
+`testsite/sudoers-serviceguard.example` to match your machine, then:
+
+```bash
+sudo cp testsite/systemd/*.service /etc/systemd/system/
+sudo cp testsite/sudoers-serviceguard.example /etc/sudoers.d/serviceguard
+sudo chmod 440 /etc/sudoers.d/serviceguard && sudo visudo -cf /etc/sudoers.d/serviceguard
+sudo systemctl daemon-reload
+sudo systemctl enable --now sg-backend-a sg-backend-b serviceguard
+sudo cp monitoring/prometheus.yml /etc/prometheus/prometheus.yml
+sudo systemctl restart prometheus
+```
+
+Grafana is installed separately from Grafana's own APT repository. Add
+Prometheus (`http://localhost:9090`) as a data source.
 
 ## Usage
 
 ```bash
-python src/serviceguard.py --once                # one check, exit 0 (up) or 1 (down)
-python src/serviceguard.py --interval 3          # monitor only
-python src/serviceguard.py --interval 3 --recover --max-attempts 3
-python -m pytest tests/ -v                       # unit tests
-python scripts/summarize_incidents.py            # regenerate evidence/incident-summary.md
+python src/serviceguard.py --once        # one check of all targets, exit 0 or 1
+python src/serviceguard.py --recover     # monitor and recover
+python -m pytest tests/ -v               # tests
 ```
 
 ## Test results
 
-Three failure scenarios were run on a local setup. Full details are in
-[docs/TEST_RESULTS.md](docs/TEST_RESULTS.md).
+Details: [docs/TEST_RESULTS.md](docs/TEST_RESULTS.md). All figures come from
+single runs on one machine.
 
 | Scenario | Result |
 |---|---|
-| Nginx stopped | Detected, restarted automatically, verified (~6.5s detected downtime) |
-| Broken Nginx config | Recovery refused to restart onto a bad config, escalated, fixed manually |
-| `/health` file missing | Restart succeeded but did not fix it, escalated, fixed manually |
-
-Downtime is measured from the first failed check, not the exact moment of
-failure. Only the first scenario is automated recovery time. The other two
-include the time a human took to fix the problem.
-
-## Design decisions
-
-- **Consecutive-failure threshold** avoids opening incidents on a single failed check.
-- **Config test before restart** prevents restarting onto a broken config.
-- **Recovery is verified over HTTP**, because a restart command can succeed
-  while the service is still unhealthy.
-- **Attempt limit with escalation** prevents endless restart loops.
-- **Least-privilege sudo** grants only the two commands recovery needs.
+| Nginx stopped (v1, single Nginx) | Restarted automatically, ~6.5s detected downtime |
+| Broken Nginx config (v1) | Refused to restart onto bad config, escalated |
+| Missing health file (v1) | Restart ran but could not fix it, escalated |
+| One backend stopped (v2) | Nginx kept serving: 10 of 10 requests returned 200 |
+| Backend stopped, ServiceGuard v2 | Incident named the backend, restarted only it, ~9s |
+| ServiceGuard killed with SIGKILL | systemd restarted it |
 
 ## Limitations
 
-- Single machine, single service, one run per scenario. These are
-  demonstrations, not statistics.
-- Not a cloud deployment and not a replacement for tools like Prometheus or
-  Nagios. There is no alerting, dashboard, or metrics storage.
-- The consecutive-failure counter keeps counting after the threshold, so logs
-  show lines like `DOWN (5/2)`. This is cosmetic.
-- The check list and service name are set in `src/serviceguard.py`, not in a
-  config file.
-- ServiceGuard is not installed as a systemd service; it is run manually.
+- One machine, one run per scenario: demonstrations, not statistics.
+- Not a cloud or multi-node deployment. No alerting (no Alertmanager).
+- The backends are simple Python test servers.
+- Metric counters reset when ServiceGuard restarts.
+- The per-cycle summary line shows the status from before recovery ran.
+- If both backends die, the frontend also fails and restarting Nginx cannot fix it.
+- Recovery pauses the monitor loop briefly, because checks run in sequence.
+- Not tested: restart after a full WSL shutdown.
+- The Node Exporter dashboard is a community dashboard (Grafana ID 1860).

@@ -4,46 +4,63 @@
 
 ```mermaid
 flowchart LR
-  subgraph WIN["Windows 11 laptop"]
-    subgraph WSL["WSL 2: Ubuntu 24.04 with systemd"]
-      SG["serviceguard.py<br/>monitor loop, incidents"]
-      CH["checker.py<br/>HTTP status + content"]
-      RC["recovery.py<br/>nginx -t, restart, is-active"]
-      NG["Nginx test site<br/>port 8080"]
-      LG["logs/serviceguard.log<br/>logs/incidents.jsonl"]
-    end
+  subgraph WSL["WSL 2: Ubuntu 24.04 with systemd"]
+    NG["Nginx load balancer :8080"]
+    BA["backend-a :9001"]
+    BB["backend-b :9002"]
+    SG["ServiceGuard (systemd service)"]
+    MX["metrics endpoint :9101"]
+    NE["Node Exporter :9100"]
+    PR["Prometheus :9090"]
+    GF["Grafana :3000"]
+    LG["logs: incidents.jsonl, serviceguard.log"]
   end
-  SG --> CH
-  CH -- "GET /health and GET /" --> NG
-  SG -- "after threshold failures" --> RC
-  RC -- "sudo: nginx -t, systemctl restart" --> NG
+  NG --> BA
+  NG --> BB
+  SG -- "GET /" --> NG
+  SG -- "GET /health" --> BA
+  SG -- "GET /health" --> BB
+  SG -- "sudo restart, allow-listed" --> NG
+  SG --> MX
   SG --> LG
+  PR -- scrape --> MX
+  PR -- scrape --> NE
+  GF -- query --> PR
 ```
 
-## Incident lifecycle
+## Per-target incident lifecycle
+
+Each target (frontend, backend-a, backend-b) has its own failure counter and
+incident state.
 
 ```mermaid
 flowchart TD
-  A["Check /health and /"] --> B{"Both OK?"}
-  B -- yes --> A
+  A["Check target"] --> B{"Check passed?"}
+  B -- yes --> R{"Incident open?"}
+  R -- yes --> S["Log INCIDENT RESOLVED with downtime"]
+  R -- no --> A
+  S --> A
   B -- no --> C["Count consecutive failure"]
   C --> D{"Failures >= threshold?"}
   D -- no --> A
   D -- yes --> E["Open incident, write JSON event"]
   E --> F{"--recover on and attempts left?"}
   F -- no --> J["Log: manual intervention required"]
-  F -- yes --> G["nginx -t"]
-  G -- fails --> H["Skip restart, count attempt"]
-  G -- passes --> I["systemctl restart, then is-active"]
-  H --> K["Re-check over HTTP"]
-  I --> K
-  K --> B
+  F -- yes --> G{"Service is nginx?"}
+  G -- yes --> H["nginx -t"]
+  H -- fails --> K["Skip restart, count attempt"]
+  H -- passes --> I["systemctl restart, then is-active"]
+  G -- no --> I
+  I --> A
+  K --> A
   J --> A
-  B -. "OK after an incident" .-> L["Log INCIDENT RESOLVED with downtime"]
 ```
 
 ## Notes
 
 - Everything runs on one local machine. There is no cloud component.
-- Recovery is verified by a fresh HTTP check, not by the restart result.
-- The sudoers rule allows only `nginx -t` and `systemctl restart nginx`.
+- Recovery is confirmed by the next HTTP check, not by the restart command.
+- The sudoers rule allows only `nginx -t` and restarts of nginx, sg-backend-a
+  and sg-backend-b. The code also keeps its own allow-list.
+- systemd watches ServiceGuard (`Restart=on-failure`). ServiceGuard watches
+  the web services.
