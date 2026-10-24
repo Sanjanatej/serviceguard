@@ -1,1 +1,1 @@
-sanjana ALL=(root) NOPASSWD: /usr/bin/systemctl restart nginx, /usr/sbin/nginx -t
+sanjana ALL=(root) NOPASSWD: /usr/bin/systemctl restart nginx, /usr/bin/systemctl restart sg-backend-a, /usr/bin/systemctl restart sg-backend-b, /usr/sbin/nginx -t

@@ -1,0 +1,15 @@
+{
+  "interval": 3,
+  "timeout": 3,
+  "threshold": 2,
+  "max_attempts": 3,
+  "verify_wait": 3,
+  "targets": [
+    {"name": "frontend", "url": "http://localhost:8080/",
+     "expected_text": "ServiceGuard Test Site", "service": "nginx"},
+    {"name": "backend-a", "url": "http://127.0.0.1:9001/health",
+     "expected_text": "OK", "service": "sg-backend-a"},
+    {"name": "backend-b", "url": "http://127.0.0.1:9002/health",
+     "expected_text": "OK", "service": "sg-backend-b"}
+  ]
+}
