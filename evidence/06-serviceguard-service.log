@@ -1,0 +1,2 @@
+Oct 24 05:35:38 LAPTOP-O8ADA9UC systemd[1]: serviceguard.service: Main process exited, code=killed, status=9/KILL
+Oct 24 05:35:38 LAPTOP-O8ADA9UC systemd[1]: serviceguard.service: Failed with result 'signal'.

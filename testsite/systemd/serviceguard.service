@@ -1,0 +1,13 @@
+[Unit]
+Description=ServiceGuard monitor
+After=network.target nginx.service sg-backend-a.service sg-backend-b.service
+
+[Service]
+User=sanjana
+WorkingDirectory=/home/sanjana/serviceguard
+ExecStart=/home/sanjana/serviceguard/.venv/bin/python /home/sanjana/serviceguard/src/serviceguard.py --recover
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
