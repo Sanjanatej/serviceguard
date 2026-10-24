@@ -69,3 +69,46 @@ in `evidence/` and `logs/incidents.jsonl`.
 
 Port conflicts, full disks, permission errors, slow responses and
 crashing application code were not tested.
+
+## v2 incidents (load balancer and monitoring)
+
+Incidents 1 to 3 above were reproduced on the v1 single-Nginx setup.
+
+### Incident 4: one backend is down behind the load balancer
+
+- **Symptom:** the site still works, but ServiceGuard logs
+  `[backend-b] DOWN` and opens an incident.
+- **Confirm:** `systemctl is-active sg-backend-b`, then
+  `curl -s localhost:9002/health`. The Nginx error log shows
+  `Connection refused ... upstream: "http://127.0.0.1:9002/"`.
+- **Fix:** `sudo systemctl restart sg-backend-b`. ServiceGuard does this itself.
+- **Lesson:** a load balancer hides a dead backend. Check each backend
+  directly, not only through the front door.
+
+### Incident 5: all traffic goes to one backend
+
+- **Symptom:** repeated requests to port 8080 all show the same backend.
+  This happened once during setup, shortly after an Nginx reload.
+- **Confirm:** curl each backend directly on 9001 and 9002, then run
+  `sudo tail -n 20 /var/log/nginx/testsite_error.log`.
+- **Cause:** a backend that fails once is skipped for `fail_timeout` (5s).
+  I could not confirm the exact trigger.
+- **Fix:** wait 6 seconds and retry. If it persists, check both `server`
+  lines in the upstream block.
+
+### Incident 6: Prometheus shows the serviceguard target as down
+
+- **Symptom:** `serviceguard down` in the Prometheus targets list.
+- **Confirm:** `sudo ss -tlnp | grep 9101` shows nothing, and
+  `grep -c "metrics\." src/serviceguard.py` prints 0.
+- **Cause (seen in testing):** the service was running code that did not
+  start the metrics endpoint.
+- **Fix:** apply the code change, run `sudo systemctl restart serviceguard`,
+  then `curl -s localhost:9101/metrics | head`.
+
+### Incident 7: Grafana login fails
+
+- **Symptom:** "Invalid username or password" on a fresh install.
+- **Cause:** the default account is `admin` / `admin`, not your own name.
+- **Fix:** log in as `admin`, or run
+  `sudo grafana cli admin reset-admin-password '<new password>'`.
