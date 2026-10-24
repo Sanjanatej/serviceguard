@@ -10,6 +10,7 @@ from pathlib import Path
 
 from checker import check_service
 from recovery import attempt_recovery
+import metrics
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 LOG_DIR = BASE_DIR / "logs"
@@ -58,15 +59,19 @@ def new_state():
             "attempts": 0, "exhausted": False}
 
 
+
+
 def process(t, st, cfg, recover):
     """Check one target, update its incident state, recover if enabled."""
     r = check_service(t["url"], 200, t["expected_text"], cfg["timeout"])
     name = t["name"]
+    metrics.record_check(name, r["ok"], r["latency_ms"])
     if r["ok"]:
         if st["incident"]:
             down = round(time.monotonic() - st["first_failure"], 1)
             log.info("[%s] INCIDENT RESOLVED %s | downtime ~%ss | attempts: %d",
                      name, st["incident"], down, st["attempts"])
+            metrics.incident_resolved(name)
             write_event("incident_resolved", target=name,
                         incident_id=st["incident"], downtime_seconds=down,
                         recovery_attempts=st["attempts"])
@@ -85,6 +90,7 @@ def process(t, st, cfg, recover):
             st["incident"] = f"INC-{datetime.now():%Y%m%d-%H%M%S}-{name}"
             log.error("[%s] INCIDENT OPENED %s | %s", name, st["incident"],
                       r["reason"])
+            metrics.incident_opened(name)
             write_event("incident_opened", target=name,
                         service=t["service"], incident_id=st["incident"],
                         reason=r["reason"])
@@ -94,58 +100,7 @@ def process(t, st, cfg, recover):
             st["attempts"] += 1
             log.warning("[%s] Recovery attempt %d/%d for '%s'", name,
                         st["attempts"], cfg["max_attempts"], t["service"])
-            out = attempt_recovery(t["service"])
-            write_event("recovery_attempt", target=name,
-                        incident_id=st["incident"], attempt=st["attempts"],
-                        commands_succeeded=out["success"], steps=out["steps"])
-            log.info("[%s] Recovery commands %s; re-checking next cycle", name,
-                     "succeeded" if out["success"] else "FAILED")
-            time.sleep(cfg["verify_wait"])
-        elif not st["exhausted"]:
-            log.error("[%s] Recovery attempts exhausted for %s - manual "
-                      "intervention required", name, st["incident"])
-            write_event("recovery_exhausted", target=name,
-                        incident_id=st["incident"])
-            st["exhausted"] = True
-    return r
-
-
-def process(t, st, cfg, recover):
-    """Check one target, update its incident state, recover if enabled."""
-    r = check_service(t["url"], 200, t["expected_text"], cfg["timeout"])
-    name = t["name"]
-    if r["ok"]:
-        if st["incident"]:
-            down = round(time.monotonic() - st["first_failure"], 1)
-            log.info("[%s] INCIDENT RESOLVED %s | downtime ~%ss | attempts: %d",
-                     name, st["incident"], down, st["attempts"])
-            write_event("incident_resolved", target=name,
-                        incident_id=st["incident"], downtime_seconds=down,
-                        recovery_attempts=st["attempts"])
-        st.update(new_state())
-        return r
-
-    st["failures"] += 1
-    if st["failures"] == 1:
-        st["first_failure"] = time.monotonic()
-    if st["incident"]:
-        log.warning("[%s] still DOWN | %s", name, r["reason"])
-    else:
-        log.warning("[%s] DOWN (%d/%d) | %s", name, st["failures"],
-                    cfg["threshold"], r["reason"])
-        if st["failures"] >= cfg["threshold"]:
-            st["incident"] = f"INC-{datetime.now():%Y%m%d-%H%M%S}-{name}"
-            log.error("[%s] INCIDENT OPENED %s | %s", name, st["incident"],
-                      r["reason"])
-            write_event("incident_opened", target=name,
-                        service=t["service"], incident_id=st["incident"],
-                        reason=r["reason"])
-
-    if st["incident"] and recover:
-        if st["attempts"] < cfg["max_attempts"]:
-            st["attempts"] += 1
-            log.warning("[%s] Recovery attempt %d/%d for '%s'", name,
-                        st["attempts"], cfg["max_attempts"], t["service"])
+            metrics.recovery_attempted(name)
             out = attempt_recovery(t["service"])
             write_event("recovery_attempt", target=name,
                         incident_id=st["incident"], attempt=st["attempts"],
@@ -181,6 +136,7 @@ def main():
                  summary(res))
         sys.exit(1 if bad else 0)
 
+    metrics.start_server(cfg.get("metrics_port", 9101))
     states = {t["name"]: new_state() for t in cfg["targets"]}
     log.info("ServiceGuard v2 started (targets=%d, interval=%ss, threshold=%d,"
              " recover=%s)", len(cfg["targets"]), cfg["interval"],
