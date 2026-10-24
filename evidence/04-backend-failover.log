@@ -1,0 +1,22 @@
+=== BEFORE: both backends up ===
+ServiceGuard Test Site - served by backend a (port 9001)
+ServiceGuard Test Site - served by backend b (port 9002)
+ServiceGuard Test Site - served by backend a (port 9001)
+ServiceGuard Test Site - served by backend b (port 9002)
+=== Stopping backend b ===
+inactive
+=== AFTER: 10 requests with b down ===
+200 200 200 200 200 200 200 200 200 200 
+ServiceGuard Test Site - served by backend a (port 9001)
+ServiceGuard Test Site - served by backend a (port 9001)
+ServiceGuard Test Site - served by backend a (port 9001)
+ServiceGuard Test Site - served by backend a (port 9001)
+=== ServiceGuard v1 view ===
+2026-10-24 05:20:47,508 INFO    Status: OK | health 200 12.5ms | home 200 5.8ms
+=== Nginx error log ===
+2026/10/24 05:20:46 [error] 5427#5427: *56 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: localhost, request: "GET / HTTP/1.1", upstream: "http://127.0.0.1:9002/", host: "localhost:8080"
+2026/10/24 05:20:46 [error] 5428#5428: *69 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: localhost, request: "GET / HTTP/1.1", upstream: "http://127.0.0.1:9002/", host: "localhost:8080"
+ServiceGuard Test Site - served by backend a (port 9001)
+ServiceGuard Test Site - served by backend a (port 9001)
+ServiceGuard Test Site - served by backend b (port 9002)
+ServiceGuard Test Site - served by backend a (port 9001)
