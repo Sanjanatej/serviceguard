@@ -1,2 +1,11 @@
+=== ServiceGuard log (running as a systemd service) ===
+2026-10-24 05:34:50,130 INFO    ServiceGuard v2 started (targets=3, interval=3s, threshold=2, recover=True)
+2026-10-24 05:35:26,333 ERROR   [backend-b] INCIDENT OPENED INC-20261024-053526-backend-b | connection refused or unreachable
+2026-10-24 05:35:26,334 WARNING [backend-b] Recovery attempt 1/3 for 'sg-backend-b'
+2026-10-24 05:35:26,434 INFO    [backend-b] Recovery commands succeeded; re-checking next cycle
+2026-10-24 05:35:32,452 INFO    [backend-b] INCIDENT RESOLVED INC-20261024-053526-backend-b | downtime ~9.1s | attempts: 1
+2026-10-24 05:35:44,330 INFO    ServiceGuard v2 started (targets=3, interval=3s, threshold=2, recover=True)
+=== systemd view of the SIGKILL and restart ===
 Oct 24 05:35:38 LAPTOP-O8ADA9UC systemd[1]: serviceguard.service: Main process exited, code=killed, status=9/KILL
 Oct 24 05:35:38 LAPTOP-O8ADA9UC systemd[1]: serviceguard.service: Failed with result 'signal'.
+Oct 24 05:35:43 LAPTOP-O8ADA9UC systemd[1]: serviceguard.service: Scheduled restart job, restart counter is at 1.
