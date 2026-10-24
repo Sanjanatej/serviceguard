@@ -1,0 +1,11 @@
+[Unit]
+Description=ServiceGuard test backend b
+After=network.target
+
+[Service]
+User=sanjana
+ExecStart=/usr/bin/python3 /home/sanjana/serviceguard/src/backend.py 9002 b
+Restart=no
+
+[Install]
+WantedBy=multi-user.target
