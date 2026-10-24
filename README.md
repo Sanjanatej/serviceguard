@@ -53,7 +53,7 @@ logs/       incidents.jsonl (tracked as evidence); *.log files are ignored
 sudo apt update
 sudo apt install -y python3-pip python3-venv nginx curl
 
-git clone <your-repo-url> serviceguard && cd serviceguard
+git clone https://github.com/Sanjanatej/serviceguard.git serviceguard && cd serviceguard
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 
